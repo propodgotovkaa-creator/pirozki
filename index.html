@@ -1,1 +1,228 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Лепим пирожки</title>
+  <style>
+* { box-sizing: border-box; }
+html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+body { display: grid; place-items: center; background: #3a261a; font-family: "Trebuchet MS", Arial, sans-serif; }
+button { font: inherit; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+button:focus-visible { outline: 3px solid #fff8dc; outline-offset: 4px; }
+[hidden] { display: none !important; }
+.stage { position: relative; width: min(100vw, 177.777778vh); aspect-ratio: 16 / 9; overflow: hidden; isolation: isolate; container-type: inline-size; user-select: none; }
+.kitchen { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+.hint { position: absolute; z-index: 5; top: 3%; left: 50%; transform: translateX(-50%); margin: 0; padding: .65em 1.25em; border: 1px solid #fff9eac7; border-radius: 100px; background: #fff8eaeF; box-shadow: 0 4px 18px #66341520; color: #754521; font-size: clamp(12px, 1.7cqw, 28px); font-weight: 700; white-space: nowrap; }
+.restart { position: absolute; top: 3%; right: 2%; z-index: 6; width: 4.2%; aspect-ratio: 1; border: 1px solid #fff9eac7; border-radius: 50%; background: #fff8eaeF; color: #754521; font-size: 3cqw; line-height: 1; cursor: pointer; }
+.restart:disabled { opacity: .5; cursor: default; }
+.tray { position: absolute; left: 67%; top: 25%; width: 31%; height: 27%; padding: 0; border: 0; background: none; z-index: 2; }
+.tray-image { position: absolute; width: 100%; height: auto; left: 0; top: 50%; transform: translateY(-50%); pointer-events: none; }
+.tray:disabled { opacity: 1; }
+.tray.ready { cursor: pointer; }
+.tray.ready .tray-image { animation: tray-glow 1.6s ease-in-out infinite; }
+.pastries { position: absolute; inset: 0; pointer-events: none; }
+.pastry { position: absolute; width: 29%; height: auto; transform: translate(-50%, -50%); filter: drop-shadow(0 3px 2px #24110755); }
+.dough { position: absolute; z-index: 4; width: 23%; aspect-ratio: 1; padding: 0; border: 0; border-radius: 48%; background: none; transform: translate(-50%, -50%); cursor: pointer; touch-action: manipulation; }
+.dough:disabled { cursor: default; }
+.dough-layer { position: absolute; width: 100%; height: 100%; left: 0; top: 0; pointer-events: none; filter: drop-shadow(0 7px 4px #80461935); }
+.dough .next { opacity: 0; }
+.dough:not(:disabled) .current { animation: dough-invite 2.3s ease-in-out infinite; }
+.finish, .error { position: absolute; inset: 0; z-index: 10; display: grid; place-items: center; background: #3e210f38; backdrop-filter: blur(3px); }
+.finish-card, .error { color: #754521; text-align: center; }
+.finish-card { width: 40%; padding: 2.4% 3% 3%; border: 2px solid #fffefa; border-radius: 2.5cqw; background: #fff6e5; box-shadow: 0 16px 50px #59301833; }
+.finish-flower { display: block; color: #e9a244; font-size: 5cqw; line-height: 1; }
+h1 { margin: .4em 0; font-size: 2.6cqw; }
+.finish-card p { margin: .6em 0 1.5em; font-size: 1.6cqw; }
+.again, .retry { border: 0; border-radius: 50px; background: #bc6430; color: #fff; padding: .8em 1.9em; font-size: 1.7cqw; font-weight: 700; cursor: pointer; box-shadow: 0 4px 0 #8f4521; }
+.again:hover, .retry:hover { background: #a95125; }
+.error { align-content: center; gap: 1em; background: #fff3dfee; font-size: 2cqw; }
+.retry { justify-self: center; }
+@keyframes tray-glow { 0%, 100% { filter: drop-shadow(0 0 3px #fff7aa); } 50% { filter: drop-shadow(0 0 14px #fff0a0); } }
+@keyframes dough-invite { 0%, 75%, 100% { filter: drop-shadow(0 7px 4px #80461935); } 86% { filter: drop-shadow(0 7px 4px #80461935) brightness(1.08); } }
+@media (prefers-reduced-motion: reduce) { .tray.ready .tray-image, .dough:not(:disabled) .current { animation: none; } }
 
+</style>
+</head>
+<body>
+  <main class="stage" aria-label="Игра «Лепим пирожки»" data-phase="loading">
+    <img class="kitchen" src="fon.png" alt="Уютная кухня с двумя раскрытыми ладонями" draggable="false">
+    <p class="hint" role="status" aria-live="polite">Готовим кухню…</p>
+    <button class="restart" type="button" aria-label="Начать сначала" title="Начать сначала" disabled>↻</button>
+    <button class="tray" type="button" aria-label="Противень ещё не заполнен" disabled>
+      <img class="tray-image" src="tray-empty.png" alt="" draggable="false">
+      <span class="pastries" aria-hidden="true"></span>
+    </button>
+    <button class="dough" type="button" aria-label="Переложить тесто на другую ладонь" disabled hidden>
+      <img class="dough-layer current" src="dough-1.png" alt="Кусочек теста" draggable="false">
+      <img class="dough-layer next" src="dough-1.png" alt="" aria-hidden="true" draggable="false">
+    </button>
+    <section class="finish" role="dialog" aria-modal="true" aria-labelledby="finish-title" hidden>
+      <div class="finish-card">
+        <span class="finish-flower" aria-hidden="true">✿</span>
+        <h1 id="finish-title">Пирожки слеплены!</h1>
+        <p>Можно отправлять в духовку.</p>
+        <button class="again" type="button">Ещё раз</button>
+      </div>
+    </section>
+    <section class="error" role="alert" hidden>
+      <p>Не получилось загрузить картинки.<br>Проверьте подключение и попробуйте ещё раз.</p>
+      <button class="retry" type="button">Повторить</button>
+    </section>
+  </main>
+  <script>
+(() => {
+  'use strict';
+  const stage = document.querySelector('.stage');
+  const dough = document.querySelector('.dough');
+  const current = dough.querySelector('.current');
+  const next = dough.querySelector('.next');
+  const tray = document.querySelector('.tray');
+  const pastries = document.querySelector('.pastries');
+  const hint = document.querySelector('.hint');
+  const finish = document.querySelector('.finish');
+  const again = document.querySelector('.again');
+  const restart = document.querySelector('.restart');
+  const error = document.querySelector('.error');
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  const hands = [{ x: 28.7, y: 72 }, { x: 65.3, y: 72 }];
+  const slots = [
+    { x: 25, y: 41 }, { x: 50, y: 41 }, { x: 75, y: 41 },
+    { x: 23, y: 65 }, { x: 50, y: 65 }, { x: 77, y: 65 }
+  ];
+  let phase = 'loading';
+  let frame = 1;
+  let hand = 0;
+  let count = 0;
+  let run = 0;
+  let position = hands[0];
+  const activeAnimations = new Set();
+  const src = n => `dough-${n}.png`;
+
+  function setPhase(value) { phase = value; stage.dataset.phase = value; }
+  function place(point) {
+    position = point;
+    dough.style.left = `${point.x}%`;
+    dough.style.top = `${point.y}%`;
+  }
+  async function animate(element, keys, duration) {
+    const animation = element.animate(keys, {
+      duration: reducedMotion.matches ? Math.min(duration, 160) : duration,
+      easing: 'ease-in-out', fill: 'none'
+    });
+    activeAnimations.add(animation);
+    try { await animation.finished; } catch { /* Reset cancels the old run. */ }
+    finally { activeAnimations.delete(animation); }
+  }
+  function cancelAnimations() {
+    activeAnimations.forEach(animation => animation.cancel());
+    activeAnimations.clear();
+  }
+  function showFirstDough() {
+    frame = 1; hand = 0;
+    current.src = src(1); current.style.opacity = '1';
+    next.src = src(1); next.style.opacity = '0';
+    dough.style.width = '23%';
+    dough.hidden = false; dough.disabled = false;
+    place(hands[0]); setPhase('shaping');
+    hint.textContent = 'Нажимай на тесто';
+  }
+  function reset() {
+    run++; cancelAnimations(); count = 0;
+    pastries.replaceChildren(); finish.hidden = true;
+    tray.disabled = true; tray.classList.remove('ready');
+    tray.setAttribute('aria-label', 'Противень ещё не заполнен');
+    restart.disabled = false; showFirstDough();
+  }
+  async function shape() {
+    if (phase !== 'shaping' || dough.disabled) return;
+    const token = run;
+    setPhase('flying'); dough.disabled = true;
+    const from = position;
+    const target = hands[1 - hand];
+    next.src = src(frame + 1);
+    const arc = reducedMotion.matches ? from.y : from.y - 20;
+    await Promise.all([
+      animate(dough, [
+        { left: `${from.x}%`, top: `${from.y}%`, offset: 0 },
+        { left: `${(from.x + target.x) / 2}%`, top: `${arc}%`, offset: .5 },
+        { left: `${target.x}%`, top: `${target.y}%`, offset: 1 }
+      ], 780),
+      animate(current, [{ opacity: 1 }, { opacity: 0 }], 780),
+      animate(next, [{ opacity: 0 }, { opacity: 1 }], 780)
+    ]);
+    if (token !== run) return;
+    hand = 1 - hand; frame++; place(target);
+    current.src = src(frame);
+    if (frame === 5) {
+      setPhase('settling');
+      await animate(dough, [{ opacity: 1 }, { opacity: 1 }], 360);
+      if (token === run) await moveToTray(token);
+    } else {
+      setPhase('shaping'); dough.disabled = false;
+    }
+  }
+  async function moveToTray(token) {
+    setPhase('placing');
+    const slot = slots[count];
+    const bounds = stage.getBoundingClientRect();
+    const trayBounds = tray.getBoundingClientRect();
+    const target = {
+      x: ((trayBounds.left - bounds.left) + trayBounds.width * slot.x / 100) / bounds.width * 100,
+      y: ((trayBounds.top - bounds.top) + trayBounds.height * slot.y / 100) / bounds.height * 100
+    };
+    const smallWidth = trayBounds.width * .29 / bounds.width * 100;
+    await animate(dough, [
+      { left: `${position.x}%`, top: `${position.y}%`, width: '23%', offset: 0 },
+      { left: `${(position.x + target.x) / 2}%`, top: `${Math.min(position.y, target.y) - 12}%`, width: '16%', offset: .5 },
+      { left: `${target.x}%`, top: `${target.y}%`, width: `${smallWidth}%`, offset: 1 }
+    ], 1000);
+    if (token !== run) return;
+    const pastry = new Image();
+    pastry.src = src(5); pastry.alt = ''; pastry.className = 'pastry';
+    pastry.style.left = `${slot.x}%`; pastry.style.top = `${slot.y}%`;
+    pastries.append(pastry); count++;
+    dough.hidden = true;
+    if (count === 6) {
+      setPhase('tray-ready'); tray.disabled = false; tray.classList.add('ready');
+      tray.setAttribute('aria-label', 'Все шесть пирожков слеплены. Нажми на противень');
+      hint.textContent = 'Нажми на противень';
+      if (document.activeElement === dough) tray.focus({ preventScroll: true });
+    } else {
+      showFirstDough();
+    }
+  }
+  async function load() {
+    setPhase('loading'); error.hidden = true; restart.disabled = true;
+    hint.textContent = 'Готовим кухню…';
+    try {
+      await Promise.all(['fon.png', 'tray-empty.png', ...[1, 2, 3, 4, 5].map(src)].map(path =>
+        new Promise((resolve, reject) => {
+          const image = new Image(); image.onload = resolve; image.onerror = reject; image.src = path;
+        })
+      ));
+      reset();
+    } catch {
+      setPhase('error'); error.hidden = false; hint.textContent = 'Картинки не загрузились';
+    }
+  }
+  dough.addEventListener('click', shape);
+  tray.addEventListener('click', () => {
+    if (phase !== 'tray-ready') return;
+    setPhase('complete'); finish.hidden = false;
+    restart.disabled = true;
+    hint.textContent = 'Отличная работа!';
+    again.focus({ preventScroll: true });
+  });
+  again.addEventListener('click', () => { reset(); dough.focus({ preventScroll: true }); });
+  restart.addEventListener('click', reset);
+  document.querySelector('.retry').addEventListener('click', load);
+  finish.addEventListener('keydown', event => {
+    if (event.key === 'Tab') { event.preventDefault(); again.focus(); }
+  });
+  load();
+})();
+
+</script>
+</body>
+</html>
