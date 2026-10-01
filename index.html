@@ -22,7 +22,7 @@ button:focus-visible { outline: 3px solid #fff8dc; outline-offset: 4px; }
 .tray.ready { cursor: pointer; }
 .tray.ready .tray-image { animation: tray-glow 1.6s ease-in-out infinite; }
 .pastries { position: absolute; inset: 0; pointer-events: none; }
-.pastry { position: absolute; width: 29%; height: auto; transform: translate(-50%, -50%); filter: drop-shadow(0 3px 2px #24110755); }
+.pastry { position: absolute; width: 26%; height: auto; transform: translate(-50%, -50%); filter: drop-shadow(0 3px 2px #24110755); }
 .dough { position: absolute; z-index: 4; width: 23%; aspect-ratio: 1; padding: 0; border: 0; border-radius: 48%; background: none; transform: translate(-50%, -50%); cursor: pointer; touch-action: manipulation; }
 .dough:disabled { cursor: default; }
 .dough-layer { position: absolute; width: 100%; height: 100%; left: 0; top: 0; pointer-events: none; filter: drop-shadow(0 7px 4px #80461935); }
@@ -85,10 +85,10 @@ h1 { margin: .4em 0; font-size: 2.6cqw; }
   const restart = document.querySelector('.restart');
   const error = document.querySelector('.error');
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-  const hands = [{ x: 28.7, y: 72 }, { x: 65.3, y: 72 }];
+  const hands = [{ x: 28.7, y: 68 }, { x: 65.3, y: 68 }];
   const slots = [
-    { x: 25, y: 41 }, { x: 50, y: 41 }, { x: 75, y: 41 },
-    { x: 23, y: 65 }, { x: 50, y: 65 }, { x: 77, y: 65 }
+    { x: 27, y: 42 }, { x: 50, y: 42 }, { x: 73, y: 42 },
+    { x: 27, y: 61 }, { x: 50, y: 61 }, { x: 73, y: 61 }
   ];
   let phase = 'loading';
   let frame = 1;
@@ -171,7 +171,7 @@ h1 { margin: .4em 0; font-size: 2.6cqw; }
       x: ((trayBounds.left - bounds.left) + trayBounds.width * slot.x / 100) / bounds.width * 100,
       y: ((trayBounds.top - bounds.top) + trayBounds.height * slot.y / 100) / bounds.height * 100
     };
-    const smallWidth = trayBounds.width * .29 / bounds.width * 100;
+    const smallWidth = trayBounds.width * .26 / bounds.width * 100;
     await animate(dough, [
       { left: `${position.x}%`, top: `${position.y}%`, width: '23%', offset: 0 },
       { left: `${(position.x + target.x) / 2}%`, top: `${Math.min(position.y, target.y) - 12}%`, width: '16%', offset: .5 },
