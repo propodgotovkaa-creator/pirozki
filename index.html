@@ -268,7 +268,10 @@ h1 { margin: .4em 0; font-size: 2.6cqw; }
   const src = n => `dough-${n}.png`;
   const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-  function setPhase(value) { phase = value; stage.dataset.phase = value; }
+  function setPhase(value) {
+    phase = value; stage.dataset.phase = value;
+    hint.hidden = count > 0 && ['shaping', 'flying', 'settling', 'placing'].includes(value);
+  }
   function place(point) {
     position = point;
     dough.style.left = `${point.x}%`;
